@@ -2,6 +2,7 @@ import * as cors from "cors";
 import * as express from "express";
 import { ArtworkGenerator } from "../ArtworkGenerator";
 import { CandyMachineDownloader } from "../CandyMachineDownloader";
+import { RarityGenerator } from "../RarityGenerator";
 
 const api = express();
 api.use(cors({ origin: true }));
@@ -42,6 +43,36 @@ api.get("/generate-artwork", (req, res) => {
     })
     .catch((err) => {
       console.log("art generation failed");
+      console.log(err);
+      res.status(500).send();
+    });
+});
+
+api.get("/generate-rarity", (req, res) => {
+  const projectId = req.query.projectId?.toString();
+  const collectionId = req.query.collectionId?.toString();
+  const compositeGroupId = req.query.compositeGroupId?.toString();
+
+  if (!projectId || !collectionId || !compositeGroupId) {
+    console.log(
+      "unable to find prerequisite project/collection/composite group"
+    );
+    res.status(400).send();
+    return;
+  }
+
+  const rarityGenerator = new RarityGenerator(
+    projectId,
+    collectionId,
+    compositeGroupId
+  );
+  rarityGenerator
+    .generate()
+    .then((imageComposites) => {
+      res.status(201).send(imageComposites);
+    })
+    .catch((err) => {
+      console.log("rarity generation failed");
       console.log(err);
       res.status(500).send();
     });

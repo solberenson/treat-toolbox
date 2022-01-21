@@ -223,6 +223,31 @@ export namespace ImageComposites {
     } as ImageComposite;
   }
 
+  export async function update(
+    imageComposite: ImageComposite,
+    projectId: string,
+    collectionId: string,
+    compositeGroupId: string
+  ): Promise<ImageComposite> {
+    const docQuery = db
+      .collection(
+        "/projects/" +
+          projectId +
+          "/collections/" +
+          collectionId +
+          "/compositeGroups/" +
+          compositeGroupId +
+          "/composites"
+      )
+      .doc(imageComposite.id);
+
+    await docQuery.update(imageComposite);
+
+    return {
+      ...imageComposite,
+    } as ImageComposite;
+  }
+
   export async function isUniqueTraitsHash(
     hash: string,
     projectId: string,

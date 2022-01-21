@@ -166,6 +166,38 @@ export default function IndexPage(props: Props) {
 
     console.log("art generation complete");
 
+    await fetch(
+      API.ENDPOINT +
+        "/generate-rarity?projectId=" +
+        projectId +
+        "&collectionId=" +
+        collection.id +
+        "&compositeGroupId=" +
+        compositeGroup.id,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((json) => {
+        console.log(json);
+        return json;
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+
+    console.log("rarity generation complete");
+
     setGeneratingModalOpen(false);
 
     router.push(
