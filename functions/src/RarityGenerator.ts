@@ -68,7 +68,9 @@ export class RarityGenerator {
 
     // sort by rarity
     composites.sort(
-      (a, b) => this.calculateRarity(a.traits) - this.calculateRarity(b.traits)
+      (a, b) =>
+        this.calculateRarityScore(b.traits, composites) -
+        this.calculateRarityScore(a.traits, composites)
     );
 
     const rankTrait = {
@@ -128,4 +130,34 @@ export class RarityGenerator {
       .reduce((totalValue, currentValue) => {
         return totalValue * currentValue;
       }, 1) * 100;
+
+  calculateRarityScore = (
+    traits: TraitValuePair[],
+    composites: ImageComposite[]
+  ) =>
+    traits
+      .filter((t) => t.traitValue)
+      .map((t) => this.calculateTraitRarityScore(t, composites))
+      .reduce((totalValue, currentValue) => {
+        return totalValue + currentValue;
+      }, 0);
+
+  calculateTraitRarityScore = (
+    traitValuePair: TraitValuePair,
+    composites: ImageComposite[]
+  ) => {
+    const trait = traitValuePair.trait;
+    const traitValue = traitValuePair.traitValue;
+
+    const numCompositesWithTraitValue = composites.filter((composite) => {
+      const traitPair: TraitValuePair | undefined = composite.traits.find(
+        (compositeTraitValuePair) => {
+          return compositeTraitValuePair.trait.id == trait.id;
+        }
+      );
+      return traitPair?.traitValue?.id == traitValue?.id;
+    }).length;
+
+    return 1 / (numCompositesWithTraitValue / composites.length);
+  };
 }
