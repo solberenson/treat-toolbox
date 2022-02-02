@@ -8,6 +8,9 @@ import {
   TraitValuePair,
 } from "../models/models";
 
+const countBy = require("lodash.countby");
+const maxBy = require("lodash.maxby");
+
 export class RarityGenerator {
   projectId: string;
   collectionId: string;
@@ -137,7 +140,7 @@ export class RarityGenerator {
   ) =>
     traits
       .filter((t) => t.traitValue)
-      .map((t) => this.calculateTraitRarityScore(t, composites))
+      .map((t) => this.calculateTraitNormalizedRarityScore(t, composites))
       .reduce((totalValue, currentValue) => {
         return totalValue + currentValue;
       }, 0);
@@ -159,5 +162,37 @@ export class RarityGenerator {
     }).length;
 
     return 1 / (numCompositesWithTraitValue / composites.length);
+  };
+
+  calculateTraitNormalizedRarityScore = (
+    traitValuePair: TraitValuePair,
+    composites: ImageComposite[]
+  ) => {
+    const trait = traitValuePair.trait;
+    const traitValue = traitValuePair.traitValue;
+
+    const numCompositesWithTraitValue = composites.filter((composite) => {
+      const traitPair: TraitValuePair | undefined = composite.traits.find(
+        (compositeTraitValuePair) => {
+          return compositeTraitValuePair.trait.id == trait.id;
+        }
+      );
+      return traitPair?.traitValue?.id == traitValue?.id;
+    }).length;
+
+    const allTraitValues: string[] = composites.map((composite) => {
+      const traitPair: TraitValuePair | undefined = composite.traits.find(
+        (compositeTraitValuePair) => {
+          return compositeTraitValuePair.trait.id == trait.id;
+        }
+      );
+      return traitPair?.traitValue?.id ?? "None";
+    });
+
+    const allTraitValueCounts = countBy(allTraitValues);
+    const maxTraitValue =
+      maxBy(Object.values(allTraitValueCounts)) ?? composites.length;
+
+    return 1 / (numCompositesWithTraitValue / maxTraitValue);
   };
 }
